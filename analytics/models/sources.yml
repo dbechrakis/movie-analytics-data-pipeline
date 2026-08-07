@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: movies
+        description: Raw TMDB movie details loaded by dlt.
+      - name: genres
+        description: TMDB movie genre lookup table loaded by dlt.
