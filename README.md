@@ -1,14 +1,66 @@
-# ITC 6050 Final Project - Movie Industry Analytics
+# Movie Industry Analytics — Data Pipeline & Decision Dashboard
 
-This repository implements the Group 2 movie analytics project:
+An end-to-end analytics case study that turns **TMDB movie data into an analytical mart and interactive decision dashboard** using dlt, PostgreSQL, dbt, Python, and Streamlit.
 
-TMDB API -> dlt -> PostgreSQL -> dbt -> Streamlit
+![Dashboard preview](docs/dashboard-preview.svg)
 
-The pipeline ingests movie metadata, genre lookup data, budgets, revenues, ratings, vote counts, and popularity from TMDB. dbt cleans the raw data, calculates ROI, and builds a genre-by-decade analytics mart for the dashboard.
+## Executive summary
 
-## 1. Setup
+The project builds a complete path from external API data to business-facing analytics:
 
-Create and activate a Python virtual environment:
+**TMDB API → dlt ingestion → PostgreSQL → dbt transformations → Streamlit dashboard**
+
+The dashboard explores movie performance through **ROI, ratings, release periods, genres, budgets, and revenue**, with filters that allow users to investigate different segments.
+
+## What this demonstrates
+
+- **Data ingestion:** API-based extraction and structured loading
+- **Data engineering:** PostgreSQL storage and transformation layers
+- **Analytics engineering:** dbt staging and analytical mart
+- **Business analytics:** ROI, ratings, revenue, genre and decade analysis
+- **Decision support:** interactive KPIs, filters and visual exploration
+
+## Dashboard
+
+The Streamlit application provides:
+
+- KPI overview of the movie dataset
+- Top genres by average ROI
+- Average rating trends by release year
+- Budget vs revenue analysis
+- Genre and decade filtering
+- Analytical summary data from the dbt mart
+
+The purpose is not simply to display charts, but to create a reproducible workflow from **raw data → trusted metrics → business-facing analysis**.
+
+## Architecture
+
+```text
+TMDB API
+   ↓
+dlt ingestion
+   ↓
+PostgreSQL
+   ↓
+dbt transformations
+   ↓
+Analytics mart
+   ↓
+Streamlit dashboard
+```
+
+## Analytical model
+
+The dbt layer builds:
+
+- `analytics.stg_movies` — cleaned movie-level data
+- `analytics.genre_decade_summary` — genre × decade analytical summary
+
+Derived metrics include ROI and aggregated rating / performance measures.
+
+## Reproduce locally
+
+### 1. Environment
 
 ```bash
 python3 -m venv .venv
@@ -23,44 +75,21 @@ Copy the environment template and add your TMDB API key:
 cp .env.example .env
 ```
 
-Edit `.env` and set:
+Never commit `.env` or real API credentials.
 
-```text
-TMDB_API_KEY=your_real_key_here
-```
-
-Never commit `.env`.
-
-## 2. Start PostgreSQL
+### 2. Start PostgreSQL
 
 ```bash
 docker compose up -d
 ```
 
-The default database is:
-
-- Host: `localhost`
-- Port: `5432`
-- Database: `movies`
-- User: `itc6050`
-- Password: `itc6050`
-
-## 3. Run Ingestion
-
-From the project root:
+### 3. Run ingestion
 
 ```bash
 python pipeline.py
 ```
 
-This loads two raw tables into PostgreSQL:
-
-- `raw.movies`
-- `raw.genres`
-
-The movie ingestion uses TMDB discover results as the bounded entrypoint, then fetches movie details for each discovered ID because budget and revenue are available on the movie details endpoint.
-
-## 4. Run dbt
+### 4. Build the analytics layer
 
 ```bash
 cd analytics
@@ -69,42 +98,30 @@ dbt run --profiles-dir .
 dbt test --profiles-dir .
 ```
 
-dbt builds:
-
-- `analytics.stg_movies`
-- `analytics.genre_decade_summary`
-
-## 5. Run Dashboard
-
-From the project root:
+### 5. Launch the dashboard
 
 ```bash
+cd ..
 streamlit run dashboard.py
 ```
 
-The dashboard includes:
+## Key analytical questions
 
-- KPI row: total movies loaded, average rating, highest grossing film.
-- Bar chart: top 10 genres by average ROI.
-- Line chart: average rating by release year.
-- Scatter plot: budget vs revenue with genre color.
-- Filters: genre, decade, minimum vote count.
+- Which genres deliver the strongest average ROI?
+- How have ratings changed across release years?
+- How does budget relate to revenue?
+- Which genres and decades show different performance profiles?
+- Can a reproducible data pipeline support consistent decision-making?
 
-## 6. Useful Checks
+## Tools
 
-Confirm raw tables:
+**Python · pandas · PostgreSQL · SQL · dlt · dbt · Streamlit · Plotly · Docker**
 
-```bash
-docker exec -it itc6050_movies_pg psql -U itc6050 -d movies -c "select count(*) from raw.movies;"
-docker exec -it itc6050_movies_pg psql -U itc6050 -d movies -c "select count(*) from raw.genres;"
-```
+## Context
 
-Confirm dbt mart:
-
-```bash
-docker exec -it itc6050_movies_pg psql -U itc6050 -d movies -c "select * from analytics.genre_decade_summary order by decade desc, total_films desc limit 10;"
-```
+Portfolio case study developed as part of an MSc Data Science project at **The American College of Greece**. The academic context is retained for transparency; the repository is structured and presented as a professional data analytics / engineering case study.
 
 ## Author
 
-Dimitris Bechrakis - M.Sc. Data Science, The American College of Greece
+**Dimitris Bechrakis**  
+Business & Data Analyst | M.Sc. Data Science
