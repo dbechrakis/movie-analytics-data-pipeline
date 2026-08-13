@@ -2,7 +2,7 @@
 
 An end-to-end analytics case study that turns **TMDB movie data into an analytical mart and interactive decision dashboard** using dlt, PostgreSQL, dbt, Python, and Streamlit.
 
-![Dashboard preview](docs/dashboard-preview.svg)
+![Dashboard preview](https://raw.githubusercontent.com/dbechrakis/movie-analytics-data-pipeline/main/docs/dashboard-preview.svg)
 
 ## Executive summary
 
