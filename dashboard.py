@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from metrics import genre_decade_summary
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
@@ -65,7 +66,8 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 st.set_page_config(page_title="TMDB Movie Industry Analytics", layout="wide")
 st.title("TMDB Movie Industry Analytics")
-st.caption("ITC 6050 final project: TMDB -> dlt -> PostgreSQL -> dbt -> Streamlit")
+st.caption("TMDB sample explorer · API → PostgreSQL → dbt → dashboard")
+st.info("This is a revenue-ranked sample, not a representative sample of the film industry. ROI is (reported revenue − production budget) / production budget; it excludes marketing, distribution and revenue sharing.")
 
 try:
     movie_rows, genre_decade = load_data()
@@ -160,10 +162,9 @@ with right:
 st.subheader("Budget vs revenue")
 st.plotly_chart(
     px.scatter(
-        filtered,
+        movie_level,
         x="budget",
         y="revenue",
-        color="genre_name",
         hover_name="title",
         hover_data=["release_year", "vote_average", "vote_count", "roi"],
         log_x=True,
@@ -178,8 +179,5 @@ st.plotly_chart(
 )
 
 st.subheader("Genre and decade summary")
-visible_mart = genre_decade[
-    genre_decade["genre_name"].isin(selected_genres)
-    & genre_decade["decade"].isin(selected_decades)
-].sort_values(["decade", "genre_name"])
+visible_mart = genre_decade_summary(filtered)
 st.dataframe(visible_mart, use_container_width=True, hide_index=True)

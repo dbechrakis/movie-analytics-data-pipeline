@@ -18,6 +18,18 @@ The dashboard explores movie performance through **ROI, ratings, release periods
 - **Business analytics:** ROI, ratings, revenue, genre and decade analysis
 - **Decision support:** interactive KPIs, filters and visual exploration
 
+## Scope, metric definitions and verification
+
+The default ingestion requests **five revenue-ranked discovery pages**, with a minimum vote count, then keeps movies with positive reported budget and revenue. This is a selected sample, not a representative estimate of the film industry.
+
+`ROI = (reported revenue − production budget) / production budget` is a gross revenue-to-budget proxy. It excludes marketing, distribution, financing and exhibitor revenue sharing; it is not net investor return. Movies may belong to multiple genres, so genre counts are not additive.
+
+The dashboard summary now applies the same minimum-vote, genre and decade filters as the charts. No live TMDB/PostgreSQL/dbt run was completed in this review because no TMDB credential or PostgreSQL runtime was available. The filtering regression test uses a small synthetic fixture and is not a live-data validation.
+
+## My role
+
+I maintain this portfolio implementation and present the ingestion, transformation and dashboard code together for review. The repository does not contain a task-level authorship statement for the original coursework, so it does not assign sole credit for every component.
+
 ## Dashboard
 
 The Streamlit application provides:
