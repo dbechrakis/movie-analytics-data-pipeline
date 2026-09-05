@@ -16,3 +16,5 @@ analytics/.user.yml
 
 *.duckdb
 *.db
+
+.ipynb_checkpoints/
