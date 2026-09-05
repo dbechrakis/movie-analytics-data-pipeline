@@ -1,5 +1,7 @@
 # Movie Industry Analytics — Data Pipeline & Decision Dashboard
 
+[![Evidence checks](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml/badge.svg)](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml)
+
 An end-to-end analytics case study that turns **TMDB movie data into an analytical mart and interactive decision dashboard** using dlt, PostgreSQL, dbt, Python, and Streamlit.
 
 ## Executive summary
@@ -135,3 +137,7 @@ Portfolio case study developed as part of an MSc Data Science project at **The A
 
 **Dimitris Bechrakis**  
 Business & Data Analyst | M.Sc. Data Science
+
+## Licensing
+
+See [licensing scope](LICENSING.md) for the MIT-licensed verification code and the separately governed project materials.
