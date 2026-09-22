@@ -1,93 +1,120 @@
-# Movie Industry Analytics — Data Pipeline & Decision Dashboard
+# Movie Industry Analytics Data Product
 
 [![Evidence checks](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml/badge.svg)](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml)
 
-An end-to-end analytics case study that turns **TMDB movie data into an analytical mart and interactive decision dashboard** using dlt, PostgreSQL, dbt, Python, and Streamlit.
+An end-to-end analytics product that turns TMDB API data into tested analytical models and an interactive decision dashboard.
 
-## Executive summary
+**Stack:** Python · dlt · PostgreSQL · dbt · Streamlit · Plotly · Docker
 
-The project builds a complete path from external API data to business-facing analytics:
+![Dashboard preview](docs/dashboard-preview.svg)
 
-**TMDB API → dlt ingestion → PostgreSQL → dbt transformations → Streamlit dashboard**
+## Business problem
 
-The dashboard explores movie performance through **ROI, ratings, release periods, genres, budgets, and revenue**, with filters that allow users to investigate different segments.
+Movie-performance analysis is often built directly on raw API responses, which makes metric definitions, filtering, and repeated analysis inconsistent. This project creates a reproducible path from source data to business-facing analysis so users can investigate:
 
-## What this demonstrates
+- which genres show the strongest average gross ROI proxy;
+- how ratings vary across release periods;
+- how reported production budget relates to reported revenue;
+- how conclusions change across genres, decades, and vote-count thresholds.
 
-- **Data ingestion:** API-based extraction and structured loading
-- **Data engineering:** PostgreSQL storage and transformation layers
-- **Analytics engineering:** dbt staging and analytical mart
-- **Business analytics:** ROI, ratings, revenue, genre and decade analysis
-- **Decision support:** interactive KPIs, filters and visual exploration
+The product is designed for exploratory decision support, not for claiming causal investment recommendations.
 
-## Scope, metric definitions and verification
+## Solution overview
 
-The default ingestion requests **five revenue-ranked discovery pages**, with a minimum vote count, then keeps movies with positive reported budget and revenue. This is a selected sample, not a representative estimate of the film industry.
+The system separates ingestion, transformation, testing, and presentation into explicit layers:
 
-`ROI = (reported revenue − production budget) / production budget` is a gross revenue-to-budget proxy. It excludes marketing, distribution, financing and exhibitor revenue sharing; it is not net investor return. Movies may belong to multiple genres, so genre counts are not additive.
-
-The dashboard summary now applies the same minimum-vote, genre and decade filters as the charts. No live TMDB/PostgreSQL/dbt run was completed in this review because no TMDB credential or PostgreSQL runtime was available. The filtering regression test uses a small synthetic fixture and is not a live-data validation.
-
-## My role
-
-I maintain this portfolio implementation and present the ingestion, transformation and dashboard code together for review. The repository does not contain a task-level authorship statement for the original coursework, so it does not assign sole credit for every component.
-
-## Dashboard
-
-The Streamlit application provides:
-
-- KPI overview of the movie dataset
-- Top genres by average ROI
-- Average rating trends by release year
-- Budget vs revenue analysis
-- Genre and decade filtering
-- Analytical summary data from the dbt mart
-
-The purpose is not simply to display charts, but to create a reproducible workflow from **raw data → trusted metrics → business-facing analysis**.
-
-## Architecture
-
-```text
-TMDB API
-   ↓
-dlt ingestion
-   ↓
-PostgreSQL
-   ↓
-dbt transformations
-   ↓
-Analytics mart
-   ↓
-Streamlit dashboard
+```mermaid
+flowchart LR
+    A["TMDB API"] --> B["dlt ingestion"]
+    B --> C["PostgreSQL raw layer"]
+    C --> D["dbt staging + tests"]
+    D --> E["Analytics mart"]
+    E --> F["Streamlit dashboard"]
 ```
 
-## Analytical model
+| Layer | Responsibility | Main output |
+|---|---|---|
+| Ingestion | Extract discovery, movie-detail, and genre data | `raw.movies`, `raw.genres` |
+| Staging | Type, clean, filter, and derive movie-level fields | `analytics.stg_movies` |
+| Analytics | Aggregate genre × decade performance | `analytics.genre_decade_summary` |
+| Quality | Enforce schema and business-rule checks | dbt + Python test results |
+| Presentation | Apply consistent filters and surface KPIs/charts | Interactive Streamlit dashboard |
 
-The dbt layer builds:
+See the [architecture notes](docs/architecture.md) for component boundaries and data contracts.
 
-- `analytics.stg_movies` — cleaned movie-level data
-- `analytics.genre_decade_summary` — genre × decade analytical summary
+## Data and metric definitions
 
-Derived metrics include ROI and aggregated rating / performance measures.
+The default ingestion requests five TMDB discovery pages sorted by reported revenue and requires at least 50 votes before retrieving movie details. The dbt staging layer then keeps records with:
 
-## Reproduce locally
+- a valid title and release date;
+- positive reported budget and revenue;
+- a rating between 0 and 10.
 
-### 1. Environment
+The key derived metric is:
+
+```text
+Gross ROI proxy = (reported revenue - reported production budget) / reported production budget
+```
+
+This is **not net investor return**. It excludes marketing, distribution, financing, taxes, and exhibitor revenue sharing. Movies may belong to multiple genres, so genre counts must not be added together as if they were mutually exclusive.
+
+## Data quality and validation
+
+Quality controls exist at three levels:
+
+1. **dbt schema tests** check identifiers, required fields, and movie-grain uniqueness.
+2. **dbt singular tests** reject impossible ratings, non-positive financial values, empty marts, and invalid ROI values.
+3. **Python regression tests** verify filtered-summary behavior, duplicate handling, empty inputs, and environment parsing.
+
+CI validates committed Python syntax and runs the regression suite on every pull request and push to `main`. The exact rerun scope is recorded in [VALIDATION.md](VALIDATION.md); the repository does not represent synthetic tests as a live TMDB/database validation.
+
+## Dashboard output
+
+The Streamlit interface provides:
+
+- movie-count, average-rating, and highest-grossing KPIs;
+- genre ranking by average gross ROI proxy;
+- average-rating trends by release year;
+- budget-versus-revenue exploration on logarithmic scales;
+- genre, decade, and minimum-vote filters;
+- a filtered genre × decade summary table.
+
+All visible summaries use the active dashboard filters. Metrics that require movie grain deduplicate movies after filtering, preventing multi-genre rows from inflating movie-level KPIs.
+
+## Repository structure
+
+```text
+movie-analytics-data-pipeline/
+├── app/                        # Streamlit deployment entry point
+├── dbt/                        # Staging models, mart, tests, and profile
+├── docs/                       # Architecture and dashboard preview
+├── src/movie_analytics/        # Reusable Python package
+│   ├── config.py               # Environment configuration
+│   ├── ingestion.py            # TMDB → PostgreSQL pipeline
+│   ├── metrics.py              # Filter-aware business metrics
+│   └── dashboard.py            # Dashboard data access and UI
+├── tests/                      # Python regression tests
+├── ci/                         # Evidence and syntax validation
+├── dashboard.py               # Backward-compatible UI entry point
+├── pipeline.py                # Backward-compatible ingestion entry point
+├── docker-compose.yml         # Local PostgreSQL service
+├── pyproject.toml             # Package metadata
+└── requirements.txt           # Runtime dependencies
+```
+
+## Run locally
+
+### 1. Create the environment
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-Copy the environment template and add your TMDB API key:
-
-```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Never commit `.env` or real API credentials.
+Add a TMDB API key to `.env`. Never commit `.env` or real credentials.
 
 ### 2. Start PostgreSQL
 
@@ -95,49 +122,55 @@ Never commit `.env` or real API credentials.
 docker compose up -d
 ```
 
-### 3. Run ingestion
+### 3. Ingest TMDB data
 
 ```bash
 python pipeline.py
 ```
 
-### 4. Build the analytics layer
+### 4. Build and test the analytics layer
 
 ```bash
-cd analytics
+cd dbt
 dbt debug --profiles-dir .
 dbt run --profiles-dir .
 dbt test --profiles-dir .
+cd ..
 ```
 
 ### 5. Launch the dashboard
 
 ```bash
-cd ..
-streamlit run dashboard.py
+streamlit run app/streamlit_app.py
 ```
 
-## Key analytical questions
+The previous command, `streamlit run dashboard.py`, remains supported.
 
-- Which genres deliver the strongest average ROI?
-- How have ratings changed across release years?
-- How does budget relate to revenue?
-- Which genres and decades show different performance profiles?
-- Can a reproducible data pipeline support consistent decision-making?
+### 6. Run Python tests
 
-## Tools
+```bash
+python -m unittest discover -s tests -v
+```
 
-**Python · pandas · PostgreSQL · SQL · dlt · dbt · Streamlit · Plotly · Docker**
+## Design decisions and limitations
 
-## Context
+- **Selected sample:** revenue-ranked TMDB discovery pages are not representative of the film industry.
+- **Reported financials:** missing or inaccurate TMDB budget/revenue values can bias results.
+- **Descriptive analysis:** associations in the dashboard are not causal effects.
+- **Replace loading:** the portfolio-scale ingestion favors reproducibility over incremental history.
+- **Local credentials:** defaults support local Docker use only; production secrets require a proper secret manager.
 
-Portfolio case study developed as part of an MSc Data Science project at **The American College of Greece**. The academic context is retained for transparency; the repository is structured and presented as a professional data analytics / engineering case study.
+## Future improvements
 
-## Author
+- Add incremental ingestion with freshness and volume monitoring.
+- Introduce orchestration only when scheduled execution is required.
+- Add a small deployment dataset or hosted database for a persistent public demo.
+- Extend the mart with profitability bands and minimum-sample guardrails for rankings.
 
-**Dimitris Bechrakis**  
-Business & Data Analyst | M.Sc. Data Science
+## Context and ownership
 
-## Licensing
+Portfolio case study developed from MSc Data Science coursework at **The American College of Greece** and refactored into a professional analytics-product structure. The academic origin is retained for transparency. See [LICENSING.md](LICENSING.md) for the repository's licensing scope.
 
-See [licensing scope](LICENSING.md) for the MIT-licensed verification code and the separately governed project materials.
+**Dimitris Bechrakis**
+
+Business Analyst | Commercial Analytics · Data Products · Applied Data Science
