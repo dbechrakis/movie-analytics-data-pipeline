@@ -12,6 +12,7 @@ import requests
 from dotenv import load_dotenv
 
 from movie_analytics.config import configure_dlt_postgres_from_env, env_int
+from movie_analytics.contracts import discovery_results, movie_details
 
 
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
@@ -73,13 +74,13 @@ def movies(api_key: str) -> Iterable[dict[str, Any]]:
             },
         )
 
-        for item in discover_payload.get("results", []):
+        for item in discovery_results(discover_payload, page):
             movie_id = item.get("id")
             if not movie_id or movie_id in seen_ids:
                 continue
             seen_ids.add(movie_id)
 
-            details = tmdb_get(f"/movie/{movie_id}", api_key)
+            details = movie_details(tmdb_get(f"/movie/{movie_id}", api_key), movie_id)
             time.sleep(0.05)
 
             genre_ids = [
