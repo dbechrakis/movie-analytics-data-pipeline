@@ -1,6 +1,6 @@
 # Movie Industry Analytics Data Product
 
-[![Evidence checks](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml/badge.svg)](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml)
+[![Code, tests and evidence](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml/badge.svg)](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml)
 
 An end-to-end analytics product that turns TMDB API data into tested analytical models and an interactive decision dashboard.
 
@@ -65,8 +65,9 @@ Quality controls exist at three levels:
 1. **dbt schema tests** check identifiers, required fields, and movie-grain uniqueness.
 2. **dbt singular tests** reject impossible ratings, non-positive financial values, empty marts, and invalid ROI values.
 3. **Python regression tests** verify filtered-summary behavior, duplicate handling, empty inputs, and environment parsing.
+4. **Source-response checks** reject malformed discovery results and missing or mismatched movie details before records enter the raw layer.
 
-CI validates committed Python syntax and runs the regression suite on every pull request and push to `main`. The exact rerun scope is recorded in [VALIDATION.md](VALIDATION.md); the repository does not represent synthetic tests as a live TMDB/database validation.
+CI lints application code, validates committed evidence, and runs the regression suite on every pull request and push to `main`. The exact rerun scope is recorded in [VALIDATION.md](VALIDATION.md); the repository does not represent synthetic tests as a live TMDB/database validation. [Design choices and rerun behavior](docs/architecture.md#design-decisions-and-rerun-behavior) spell out the replacement snapshot and partial-failure boundaries.
 
 ## Dashboard output
 
