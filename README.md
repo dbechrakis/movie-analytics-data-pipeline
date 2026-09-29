@@ -8,6 +8,14 @@ An end-to-end analytics product that turns TMDB API data into tested analytical 
 
 ![Dashboard preview](docs/dashboard-preview.svg)
 
+## Decision in 60 seconds
+
+| Question | Evidence available | Decision supported | Boundary |
+|---|---|---|---|
+| How do reported movie ratings, budgets and revenues vary by genre and release period in a selected TMDB snapshot? | An API-to-PostgreSQL-to-dbt pipeline, explicit quality tests and a filter-aware Streamlit dashboard. | Run the pipeline with a TMDB key, inspect the resulting dashboard and choose segments worth deeper research. | The preview is illustrative, not a live or measured result. The default discovery sample is revenue-sorted and filtered, so its genre rankings cannot represent the whole industry. Gross ROI is a proxy, not net investor return. |
+
+This repository supplies the reproducible analysis path and metric definitions; it does not publish a current TMDB result table or assert a winning genre. [Run the pipeline locally](#run-locally) to inspect an actual snapshot.
+
 ## Business problem
 
 Movie-performance analysis is often built directly on raw API responses, which makes metric definitions, filtering, and repeated analysis inconsistent. This project creates a reproducible path from source data to business-facing analysis so users can investigate:
