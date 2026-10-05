@@ -1,6 +1,7 @@
 """Streamlit decision dashboard for the transformed TMDB dataset."""
 
 import os
+from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
@@ -12,6 +13,8 @@ from movie_analytics.metrics import genre_decade_summary
 
 
 load_dotenv()
+
+TMDB_LOGO = Path(__file__).resolve().parents[2] / "docs" / "tmdb-logo.svg"
 
 
 def database_url() -> URL:
@@ -100,6 +103,8 @@ def main() -> None:
             step=25,
         )
         st.divider()
+        if TMDB_LOGO.exists():
+            st.image(str(TMDB_LOGO), width=110)
         st.caption(
             "Data source: [TMDB](https://www.themoviedb.org/). This product uses "
             "the TMDB API but is not endorsed or certified by TMDB."

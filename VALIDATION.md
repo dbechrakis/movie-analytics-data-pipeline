@@ -15,7 +15,7 @@ All steps ran in a Linux container with Python 3.11, against live TMDB data and 
 | dbt models | `dbt run --profiles-dir .` | 2 of 2 OK: `analytics.stg_movies` (view, 100 rows) and `analytics.genre_decade_summary` (table, 42 rows). |
 | dbt tests | `dbt test --profiles-dir .` | 11 of 11 PASS: 7 schema tests and 4 singular tests. |
 | Dashboard | `streamlit run app/streamlit_app.py` | Rendered with no load errors. KPIs under default filters: 100 movies loaded, average rating 7.31, highest grossing *Avengers: Endgame* at $2,925,499,985. |
-| Screenshot | Headless Chromium (Playwright) on the running app | Saved as `docs/dashboard-preview.png`. It replaces the earlier illustrative SVG. |
+| Screenshot | Headless Chromium (Playwright) on the running app | Saved as `docs/dashboard-preview.png`. It replaces the earlier illustrative SVG. Retaken after the TMDB logo (`docs/tmdb-logo.svg`) was added to the sidebar; the data is unchanged. |
 
 Cross-checks run directly against PostgreSQL:
 

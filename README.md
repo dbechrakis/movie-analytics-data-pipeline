@@ -213,6 +213,8 @@ python -m unittest discover -s tests -v
 
 ## Data attribution
 
+<img src="docs/tmdb-logo.svg" alt="TMDB logo" height="16">
+
 This product uses the TMDB API but is not endorsed or certified by TMDB. Movie metadata, ratings, budgets and revenues come from [The Movie Database (TMDB)](https://www.themoviedb.org/). The dashboard shows the same notice. Use of TMDB data is governed by the [TMDB API Terms of Use](https://www.themoviedb.org/api-terms-of-use).
 
 ## Context and ownership
