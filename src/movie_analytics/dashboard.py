@@ -99,6 +99,11 @@ def main() -> None:
             value=min(100, max_vote_count),
             step=25,
         )
+        st.divider()
+        st.caption(
+            "Data source: [TMDB](https://www.themoviedb.org/). This product uses "
+            "the TMDB API but is not endorsed or certified by TMDB."
+        )
 
     filtered = movie_rows[
         movie_rows["genre_name"].isin(selected_genres)

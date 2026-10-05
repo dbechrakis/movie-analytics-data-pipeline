@@ -6,15 +6,50 @@ An end-to-end analytics product that turns TMDB API data into tested analytical 
 
 **Stack:** Python · dlt · PostgreSQL · dbt · Streamlit · Plotly · Docker
 
-![Dashboard preview](docs/dashboard-preview.svg)
+![Streamlit dashboard on the 2026-10-05 TMDB snapshot](docs/dashboard-preview.png)
+
+*Screenshot of the running Streamlit dashboard on the TMDB snapshot ingested 2026-10-05, with the default filters (five genres, all decades, at least 100 votes).*
 
 ## Decision in 60 seconds
 
 | Question | Evidence available | Decision supported | Boundary |
 |---|---|---|---|
-| How do reported movie ratings, budgets and revenues vary by genre and release period in a selected TMDB snapshot? | An API-to-PostgreSQL-to-dbt pipeline, explicit quality tests and a filter-aware Streamlit dashboard. | Run the pipeline with a TMDB key, inspect the resulting dashboard and choose segments worth deeper research. | The preview is illustrative, not a live or measured result. The default discovery sample is revenue-sorted and filtered, so its genre rankings cannot represent the whole industry. Gross ROI is a proxy, not net investor return. |
+| How do reported movie ratings, budgets and revenues vary by genre and release period in a selected TMDB snapshot? | An API-to-PostgreSQL-to-dbt pipeline, explicit quality tests and a filter-aware Streamlit dashboard. | Run the pipeline with a TMDB key, inspect the resulting dashboard and choose segments worth deeper research. | The [2026-10-05 snapshot](#snapshot-results-2026-10-05) is a single dated run. The default discovery sample is revenue-sorted and filtered, so its genre rankings cannot represent the whole industry. Gross ROI is a proxy, not net investor return. |
 
-This repository supplies the reproducible analysis path and metric definitions; it does not publish a current TMDB result table or assert a winning genre. [Run the pipeline locally](#run-locally) to inspect an actual snapshot.
+This repository supplies the reproducible analysis path, the metric definitions and the results of one recorded run. It does not name a winning genre: the snapshot shows what this sample contains, not what the film industry does. [Run the pipeline locally](#run-locally) to produce a fresh snapshot.
+
+## Snapshot results (2026-10-05)
+
+Results from one full run on 2026-10-05 UTC: TMDB ingestion → PostgreSQL 17 → `dbt run` / `dbt test` → Streamlit. The settings were the defaults: 5 discovery pages, `revenue.desc`, at least 50 votes. TMDB data changes over time, so a rerun will produce different numbers.
+
+| Measure | Value |
+|---|---|
+| Movies ingested (`raw.movies`) / genres (`raw.genres`) | 100 / 19 |
+| Movies after dbt staging filters (`analytics.stg_movies`) | 100 (none removed) |
+| Genre × decade rows (`analytics.genre_decade_summary`) | 42 rows · 15 genres · 4 decades |
+| Release years covered | 1993–2026 (1990s: 3 · 2000s: 16 · 2010s: 55 · 2020s: 26) |
+| Lowest vote count in the sample | 159 |
+| Average TMDB rating, all 100 movies | 7.33 |
+| Gross ROI proxy, median / mean | 5.79 / 6.89 |
+| Highest reported revenue | *Avengers: Endgame* (2019), $2,925,499,985 |
+| Reported revenue across the sample | $121.9 billion |
+| dbt tests | 11 of 11 passed |
+
+Average gross ROI proxy by genre for genres with at least 10 movies in the sample. Genres overlap, so a movie can be counted under more than one.
+
+| Genre | Movies | Avg ROI proxy | Avg rating |
+|---|---:|---:|---:|
+| Animation | 26 | 8.69 | 7.32 |
+| Comedy | 25 | 8.28 | 7.20 |
+| Drama | 10 | 8.10 | 7.79 |
+| Family | 31 | 7.54 | 7.19 |
+| Fantasy | 35 | 6.52 | 7.41 |
+| Adventure | 80 | 6.40 | 7.28 |
+| Action | 52 | 6.25 | 7.31 |
+| Science Fiction | 36 | 6.18 | 7.19 |
+| Thriller | 10 | 6.18 | 7.21 |
+
+Every movie in this sample reported at least $858 million in revenue, so these figures describe blockbusters only. They are not a representative sample of the film industry. Genres with fewer than 10 movies (War, Mystery, Music, History, Crime, Romance) have higher or lower averages that rest on 1–6 films each.
 
 ## Business problem
 
@@ -75,7 +110,7 @@ Quality controls exist at three levels:
 3. **Python regression tests** verify filtered-summary behavior, duplicate handling, empty inputs, and environment parsing.
 4. **Source-response checks** reject malformed discovery results and missing or mismatched movie details before records enter the raw layer.
 
-CI lints application code, validates committed evidence, and runs the regression suite on every pull request and push to `main`. The exact rerun scope is recorded in [VALIDATION.md](VALIDATION.md); the repository does not represent synthetic tests as a live TMDB/database validation. [Design choices and rerun behavior](docs/architecture.md#design-decisions-and-rerun-behavior) spell out the replacement snapshot and partial-failure boundaries.
+CI lints application code, validates committed evidence, and runs the regression suite on every pull request and push to `main`. CI has no TMDB key or database, so it does not run live ingestion or dbt. [VALIDATION.md](VALIDATION.md) records the local end-to-end run (TMDB → PostgreSQL → dbt → Streamlit) separately from the CI checks. [Design choices and rerun behavior](docs/architecture.md#design-decisions-and-rerun-behavior) spell out the replacement snapshot and partial-failure boundaries.
 
 ## Dashboard output
 
@@ -96,7 +131,7 @@ All visible summaries use the active dashboard filters. Metrics that require mov
 movie-analytics-data-pipeline/
 ├── app/                        # Streamlit deployment entry point
 ├── dbt/                        # Staging models, mart, tests, and profile
-├── docs/                       # Architecture and dashboard preview
+├── docs/                       # Architecture and dashboard screenshot
 ├── src/movie_analytics/        # Reusable Python package
 │   ├── config.py               # Environment configuration
 │   ├── ingestion.py            # TMDB → PostgreSQL pipeline
@@ -175,6 +210,10 @@ python -m unittest discover -s tests -v
 - Introduce orchestration only when scheduled execution is required.
 - Add a small deployment dataset or hosted database for a persistent public demo.
 - Extend the mart with profitability bands and minimum-sample guardrails for rankings.
+
+## Data attribution
+
+This product uses the TMDB API but is not endorsed or certified by TMDB. Movie metadata, ratings, budgets and revenues come from [The Movie Database (TMDB)](https://www.themoviedb.org/). The dashboard shows the same notice. Use of TMDB data is governed by the [TMDB API Terms of Use](https://www.themoviedb.org/api-terms-of-use).
 
 ## Context and ownership
 
