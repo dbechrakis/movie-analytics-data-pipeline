@@ -15,4 +15,4 @@ Review date: 2026-09-22 (UTC).
 - No PostgreSQL/dbt integration run was completed against freshly ingested data.
 - No persistent hosted dashboard deployment was validated.
 
-Synthetic tests verify defined code behavior; they are not presented as live-data validation. Changes were prepared with AI assistance and should be understood and reviewed by the repository owner.
+Synthetic tests verify defined code behavior; they are not presented as live-data validation.
