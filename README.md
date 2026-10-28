@@ -27,7 +27,7 @@ Results from one full run on 2026-10-05 UTC: TMDB ingestion → PostgreSQL 17 �
 | Movies ingested (`raw.movies`) / genres (`raw.genres`) | 100 / 19 |
 | Movies after dbt staging filters (`analytics.stg_movies`) | 100 (none removed) |
 | Genre × decade rows (`analytics.genre_decade_summary`) | 42 rows · 15 genres · 4 decades |
-| Release years covered | 1993–2026 (1990s: 3 · 2000s: 16 · 2010s: 55 · 2020s: 26) |
+| Release years covered | 1993 to 2026 (1990s: 3 · 2000s: 16 · 2010s: 55 · 2020s: 26) |
 | Lowest vote count in the sample | 159 |
 | Average TMDB rating, all 100 movies | 7.33 |
 | Gross ROI proxy, median / mean | 5.79 / 6.89 |
@@ -49,7 +49,7 @@ Average gross ROI proxy by genre for genres with at least 10 movies in the sampl
 | Science Fiction | 36 | 6.18 | 7.19 |
 | Thriller | 10 | 6.18 | 7.21 |
 
-Every movie in this sample reported at least $858 million in revenue, so these figures describe blockbusters only. They are not a representative sample of the film industry. Genres with fewer than 10 movies (War, Mystery, Music, History, Crime, Romance) have higher or lower averages that rest on 1–6 films each.
+Every movie in this sample reported at least $858 million in revenue, so these figures describe blockbusters only. They are not a representative sample of the film industry. Genres with fewer than 10 movies (War, Mystery, Music, History, Crime, Romance) have higher or lower averages that rest on 1 to 6 films each.
 
 ## Business problem
 
@@ -202,7 +202,7 @@ python -m unittest discover -s tests -v
 - **Reported financials:** missing or inaccurate TMDB budget/revenue values can bias results.
 - **Descriptive analysis:** associations in the dashboard are not causal effects.
 - **Replace loading:** the portfolio-scale ingestion favors reproducibility over incremental history.
-- **Local credentials:** defaults support local Docker use only; production secrets require a proper secret manager.
+- **Local credentials:** defaults support local Docker use only. Production secrets require a proper secret manager.
 
 ## Future improvements
 
