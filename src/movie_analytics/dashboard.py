@@ -48,6 +48,7 @@ def load_data() -> pd.DataFrame:
                 m.vote_count,
                 m.popularity,
                 m.roi,
+                m.sampling,
                 jsonb_array_elements_text(m.genre_ids::jsonb)::bigint as genre_id
             from analytics.stg_movies m
         )
@@ -62,17 +63,33 @@ def load_data() -> pd.DataFrame:
     return pd.read_sql(movies_sql, engine)
 
 
+ROI_NOTE = (
+    "ROI is (reported revenue − production budget) / production budget. It excludes "
+    "marketing, distribution and revenue sharing."
+)
+SAMPLE_NOTICES = {
+    "revenue": (
+        "This is a revenue-ranked sample of the highest-grossing films. It is not a "
+        "representative sample of the film industry, and ranking by revenue inflates ROI. "
+    ),
+    "stratified_year": (
+        "This sample takes the most-voted films of each release year, so it is not chosen by "
+        "revenue. Films without a reported budget or revenue are dropped, so financial metrics "
+        "describe only films that report both. "
+    ),
+}
+
+
+def sample_notice(profile: str) -> str:
+    """Caption that states how the loaded films were selected and what ROI means."""
+    return SAMPLE_NOTICES.get(profile, "The sampling profile is unknown. ") + ROI_NOTE
+
+
 def main() -> None:
     """Render the complete interactive dashboard."""
     st.set_page_config(page_title="TMDB Movie Industry Analytics", layout="wide")
     st.title("TMDB Movie Industry Analytics")
     st.caption("TMDB sample explorer · API → PostgreSQL → dbt → dashboard")
-    st.info(
-        "This is a revenue-ranked sample, not a representative sample of the film "
-        "industry. ROI is (reported revenue − production budget) / production budget; "
-        "it excludes marketing, distribution and revenue sharing."
-    )
-
     try:
         movie_rows = load_data()
     except Exception as exc:
@@ -84,6 +101,8 @@ def main() -> None:
     if movie_rows.empty:
         st.warning("No movie rows available after dbt filtering.")
         st.stop()
+
+    st.info(sample_notice(str(movie_rows["sampling"].iloc[0])))
 
     genres = sorted(movie_rows["genre_name"].dropna().unique().tolist())
     decades = sorted(movie_rows["decade"].dropna().astype(int).unique().tolist())
@@ -158,7 +177,7 @@ def main() -> None:
                 color="films",
                 labels={"avg_roi": "Average ROI", "genre_name": "Genre", "films": "Films"},
             ).update_layout(yaxis={"categoryorder": "total ascending"}),
-            use_container_width=True,
+            width="stretch",
         )
 
     with right:
@@ -171,7 +190,7 @@ def main() -> None:
                 markers=True,
                 labels={"release_year": "Release year", "avg_rating": "Average rating"},
             ),
-            use_container_width=True,
+            width="stretch",
         )
 
     st.subheader("Budget vs revenue")
@@ -189,12 +208,12 @@ def main() -> None:
                 "revenue": "Revenue (USD, log scale)",
             },
         ),
-        use_container_width=True,
+        width="stretch",
     )
 
     st.subheader("Genre and decade summary")
     visible_mart = genre_decade_summary(filtered)
-    st.dataframe(visible_mart, use_container_width=True, hide_index=True)
+    st.dataframe(visible_mart, width="stretch", hide_index=True)
 
 
 if __name__ == "__main__":

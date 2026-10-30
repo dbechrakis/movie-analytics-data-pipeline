@@ -1,6 +1,6 @@
 # Validation record
 
-Latest review: 2026-10-05 (UTC). Previous review: 2026-09-22.
+Latest review: 2026-10-30 (UTC). Previous reviews: 2026-10-05, 2026-09-22.
 
 ## Live end-to-end run, 2026-10-05
 
@@ -25,6 +25,21 @@ Cross-checks run directly against PostgreSQL:
 
 This is one run. TMDB data and rankings change over time, so a rerun will give different figures.
 
+## Sampling profiles and end-to-end check, 2026-10-30
+
+Added `src/movie_analytics/sampling.py`, `snapshot.py`, a `sampling` column through dbt and the dashboard, `ci/fake_tmdb.py` and `ci/pipeline_check.py`. No live TMDB call was made, so there is no new real data.
+
+`ci/pipeline_check.py` ran on a local PostgreSQL 16 with dlt 1.32.0, dbt-core 1.12.6, dbt-postgres and Streamlit 1.66.1 against a synthetic TMDB of 1,860 invented films. For each profile it loaded the raw tables, ran `dbt run` and `dbt test`, built the snapshot summary, and rendered the dashboard through Streamlit's AppTest with no exception and the profile's notice. Results on the synthetic data:
+
+| Profile | Ingested | Kept after staging filters | dbt tests |
+|---|---:|---:|---|
+| `revenue` (2 pages) | 40 | 40 | all passed |
+| `stratified_year` (2015 to 2018, 1 page per year) | 80 | 74 | 13 of 13 passed |
+
+Revenue ranking kept every film because a film with revenue is by construction a film that reports it. The stratified sample lost 7.5% to missing financials. These counts come from invented films and describe the test, not TMDB. The default sample and its figures are unchanged, so the 2026-10-05 results above still hold. The CI workflow runs the same job against `postgres:17`. The local run used PostgreSQL 16, so the CI result is the check on the version the project targets.
+
+Other changes: the staging model passes `sampling` through with an `accepted_values` test (13 dbt tests, up from 11), the dashboard states how the loaded films were selected, and `st.*(use_container_width=True)` became `width="stretch"` with `streamlit>=1.50`.
+
 ## CI and regression checks
 
 - `make check` passed: ruff lint, the evidence and syntax check, and the Python regression tests covering filter-aware aggregation, duplicate handling, the empty-input schema and environment parsing.
@@ -33,4 +48,4 @@ This is one run. TMDB data and rankings change over time, so a rerun will give d
 ## Not completed
 
 - No persistent hosted dashboard deployment was validated.
-- No incremental or scheduled ingestion was tested. Each run replaces the previous snapshot.
+- No live scheduled ingestion was run. The refresh workflow needs a TMDB key stored as a repository secret and has not run. Each run replaces the previous raw snapshot.

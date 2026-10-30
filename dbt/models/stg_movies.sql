@@ -16,6 +16,7 @@ cleaned as (
         vote_average::numeric as vote_average,
         vote_count::integer as vote_count,
         popularity::numeric as popularity,
+        coalesce(sampling, 'revenue') as sampling,
         source,
         ingested_at::timestamptz as ingested_at
     from source_movies
@@ -32,6 +33,7 @@ select
     vote_average,
     vote_count,
     popularity,
+    sampling,
     round(((revenue - budget) / nullif(budget, 0))::numeric, 4) as roi,
     source,
     ingested_at

@@ -3,7 +3,7 @@
 import json
 import os
 import time
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from datetime import datetime, timezone
 from typing import Any
 
@@ -11,11 +11,14 @@ import dlt
 import requests
 from dotenv import load_dotenv
 
-from movie_analytics.config import configure_dlt_postgres_from_env, env_int
+from movie_analytics.config import configure_dlt_postgres_from_env
 from movie_analytics.contracts import discovery_results, movie_details
+from movie_analytics.sampling import Sampling
 
 
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
+
+Fetch = Callable[[str, str, dict[str, Any] | None], dict[str, Any]]
 
 
 def tmdb_get(
@@ -38,9 +41,9 @@ def tmdb_get(
 
 
 @dlt.resource(name="genres", write_disposition="replace", primary_key="id")
-def genres(api_key: str) -> Iterable[dict[str, Any]]:
+def genres(api_key: str, fetch: Fetch = tmdb_get) -> Iterable[dict[str, Any]]:
     """Yield the TMDB movie-genre lookup table."""
-    payload = tmdb_get("/genre/movie/list", api_key)
+    payload = fetch("/genre/movie/list", api_key)
     ingested_at = datetime.now(timezone.utc).isoformat()
 
     for genre in payload.get("genres", []):
@@ -53,35 +56,25 @@ def genres(api_key: str) -> Iterable[dict[str, Any]]:
 
 
 @dlt.resource(name="movies", write_disposition="replace", primary_key="id")
-def movies(api_key: str) -> Iterable[dict[str, Any]]:
+def movies(
+    api_key: str, fetch: Fetch = tmdb_get, pause_seconds: float = 0.05
+) -> Iterable[dict[str, Any]]:
     """Yield enriched movie records from TMDB discovery and detail endpoints."""
-    max_pages = env_int("TMDB_MAX_PAGES", 5)
-    vote_count_gte = env_int("TMDB_VOTE_COUNT_GTE", 50)
-    sort_by = os.getenv("TMDB_DISCOVER_SORT_BY", "revenue.desc")
+    sampling = Sampling.from_env()
     ingested_at = datetime.now(timezone.utc).isoformat()
     seen_ids: set[int] = set()
 
-    for page in range(1, max_pages + 1):
-        discover_payload = tmdb_get(
-            "/discover/movie",
-            api_key,
-            {
-                "page": page,
-                "sort_by": sort_by,
-                "vote_count.gte": vote_count_gte,
-                "include_adult": "false",
-                "include_video": "false",
-            },
-        )
+    for request in sampling.requests():
+        discover_payload = fetch("/discover/movie", api_key, request)
 
-        for item in discovery_results(discover_payload, page):
+        for item in discovery_results(discover_payload, request["page"]):
             movie_id = item.get("id")
             if not movie_id or movie_id in seen_ids:
                 continue
             seen_ids.add(movie_id)
 
-            details = movie_details(tmdb_get(f"/movie/{movie_id}", api_key), movie_id)
-            time.sleep(0.05)
+            details = movie_details(fetch(f"/movie/{movie_id}", api_key), movie_id)
+            time.sleep(pause_seconds)
 
             genre_ids = [
                 genre["id"]
@@ -99,9 +92,21 @@ def movies(api_key: str) -> Iterable[dict[str, Any]]:
                 "vote_average": details.get("vote_average"),
                 "vote_count": details.get("vote_count"),
                 "popularity": details.get("popularity"),
+                "sampling": sampling.profile,
                 "source": "tmdb.discover.movie+tmdb.movie.details",
                 "ingested_at": ingested_at,
             }
+
+
+def run_pipeline(api_key: str, fetch: Fetch = tmdb_get, pause_seconds: float = 0.05):
+    """Load genres and movies into the raw schema and return dlt's load info."""
+    configure_dlt_postgres_from_env()
+    pipeline = dlt.pipeline(
+        pipeline_name="tmdb_movie_analytics",
+        destination="postgres",
+        dataset_name="raw",
+    )
+    return pipeline.run([genres(api_key, fetch), movies(api_key, fetch, pause_seconds)])
 
 
 def main() -> None:
@@ -113,14 +118,7 @@ def main() -> None:
             "TMDB_API_KEY is required. Copy .env.example to .env and add your key."
         )
 
-    configure_dlt_postgres_from_env()
-    pipeline = dlt.pipeline(
-        pipeline_name="tmdb_movie_analytics",
-        destination="postgres",
-        dataset_name="raw",
-    )
-    info = pipeline.run([genres(api_key), movies(api_key)])
-    print(info)
+    print(run_pipeline(api_key))
 
 
 if __name__ == "__main__":

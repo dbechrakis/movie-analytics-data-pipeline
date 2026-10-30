@@ -21,6 +21,12 @@ models:
         description: TMDB average vote score from 0 to 10.
       - name: budget
       - name: revenue
+      - name: sampling
+        description: Sampling profile that selected the film, revenue or stratified_year.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['revenue', 'stratified_year']
       - name: roi
         tests:
           - not_null

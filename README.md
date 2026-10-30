@@ -101,6 +101,17 @@ Gross ROI proxy = (reported revenue - reported production budget) / reported pro
 
 This is **not net investor return**. It excludes marketing, distribution, financing, taxes, and exhibitor revenue sharing. Movies may belong to multiple genres, so genre counts must not be added together as if they were mutually exclusive.
 
+## Sampling profiles
+
+The first snapshot used one profile. A second profile now exists so the revenue bias can be measured instead of only stated. Set `TMDB_SAMPLING` to choose.
+
+| Profile | Which films | What it can and cannot support |
+|---|---|---|
+| `revenue` (default, used for the 2026-10-05 snapshot) | The highest-grossing films overall, with at least 50 votes. | Ranking by revenue selects on the outcome that the ROI proxy divides by budget, so it inflates ROI. Blockbusters only. |
+| `stratified_year` | The most-voted films of each release year, the same number of pages per year. | Votes measure exposure, not revenue, and no year is over-represented. Films without a reported budget or revenue are still dropped by the staging filters, and they are not missing at random, so financial metrics describe only films that report both. |
+
+Each run records how many films the staging filters removed, because that share is the size of the second bias. **No stratified snapshot from live TMDB data has been recorded yet.** The [monthly refresh workflow](.github/workflows/refresh-snapshots.yml) loads both profiles, runs the dbt tests and commits a dated summary to `snapshots/`. It needs a repository secret named `TMDB_API_KEY` and has not run yet, so the comparison between the two profiles is not available.
+
 ## Data quality and validation
 
 Quality controls exist at three levels:
@@ -109,8 +120,9 @@ Quality controls exist at three levels:
 2. **dbt singular tests** reject impossible ratings, non-positive financial values, empty marts, and invalid ROI values.
 3. **Python regression tests** verify filtered-summary behavior, duplicate handling, empty inputs, and environment parsing.
 4. **Source-response checks** reject malformed discovery results and missing or mismatched movie details before records enter the raw layer.
+5. **An end-to-end CI job** starts PostgreSQL, ingests a synthetic TMDB (invented films titled "Synthetic Film"), runs `dbt run` and `dbt test`, builds the snapshot summary and renders the dashboard, for both sampling profiles. It proves that the wiring and the SQL work. It produces no findings.
 
-CI lints application code, validates committed evidence, and runs the regression suite on every pull request and push to `main`. CI has no TMDB key or database, so it does not run live ingestion or dbt. [VALIDATION.md](VALIDATION.md) records the local end-to-end run (TMDB → PostgreSQL → dbt → Streamlit) separately from the CI checks. [Design choices and rerun behavior](docs/architecture.md#design-decisions-and-rerun-behavior) spell out the replacement snapshot and partial-failure boundaries.
+CI lints application code, validates committed evidence, runs the regression suite and the end-to-end job above on every pull request and push to `main`. CI has no TMDB key, so it never runs live ingestion. [VALIDATION.md](VALIDATION.md) records the local end-to-end run (TMDB → PostgreSQL → dbt → Streamlit) separately from the CI checks. [Design choices and rerun behavior](docs/architecture.md#design-decisions-and-rerun-behavior) spell out the replacement snapshot and partial-failure boundaries.
 
 ## Dashboard output
 
@@ -135,10 +147,13 @@ movie-analytics-data-pipeline/
 ├── src/movie_analytics/        # Reusable Python package
 │   ├── config.py               # Environment configuration
 │   ├── ingestion.py            # TMDB → PostgreSQL pipeline
+│   ├── sampling.py             # Sampling profiles as plain data
+│   ├── snapshot.py             # Dated JSON summary of the transformed layer
 │   ├── metrics.py              # Filter-aware business metrics
 │   └── dashboard.py            # Dashboard data access and UI
 ├── tests/                      # Python regression tests
-├── ci/                         # Evidence and syntax validation
+├── ci/                         # Evidence validation, synthetic TMDB and the end-to-end check
+├── snapshots/                  # Dated summaries written by the refresh workflow
 ├── dashboard.py               # Backward-compatible UI entry point
 ├── pipeline.py                # Backward-compatible ingestion entry point
 ├── docker-compose.yml         # Local PostgreSQL service
@@ -190,24 +205,33 @@ streamlit run app/streamlit_app.py
 
 The previous command, `streamlit run dashboard.py`, remains supported.
 
-### 6. Run Python tests
+### 6. Choose a sampling profile and write a summary
+
+```bash
+TMDB_SAMPLING=stratified_year python pipeline.py   # or revenue, the default
+(cd dbt && dbt run --profiles-dir . && dbt test --profiles-dir .)
+python -m movie_analytics.snapshot                  # writes snapshots/<date>_<profile>.json
+```
+
+### 7. Run Python tests
 
 ```bash
 python -m unittest discover -s tests -v
+make pipeline-check   # needs PostgreSQL, uses a synthetic TMDB and no key
 ```
 
 ## Design decisions and limitations
 
-- **Selected sample:** revenue-ranked TMDB discovery pages are not representative of the film industry.
+- **Selected sample:** revenue-ranked TMDB discovery pages are not representative of the film industry. The `stratified_year` profile removes the revenue selection but not the missing-financials selection.
 - **Reported financials:** missing or inaccurate TMDB budget/revenue values can bias results.
 - **Descriptive analysis:** associations in the dashboard are not causal effects.
-- **Replace loading:** the portfolio-scale ingestion favors reproducibility over incremental history.
+- **Replace loading:** each run replaces the raw tables. The dated summaries in `snapshots/` are the only history, and they hold aggregates, not films.
 - **Local credentials:** defaults support local Docker use only. Production secrets require a proper secret manager.
 
 ## Future improvements
 
-- Add incremental ingestion with freshness and volume monitoring.
-- Introduce orchestration only when scheduled execution is required.
+- Run the refresh workflow once with a TMDB key, and report the gap between the two profiles.
+- Add incremental ingestion with freshness and volume monitoring. This needs an explicit rule for deleted and updated films.
 - Add a small deployment dataset or hosted database for a persistent public demo.
 - Extend the mart with profitability bands and minimum-sample guardrails for rankings.
 
