@@ -110,7 +110,25 @@ The first snapshot used one profile. A second profile now exists so the revenue 
 | `revenue` (default, used for the 2026-10-05 snapshot) | The highest-grossing films overall, with at least 50 votes. | Ranking by revenue selects on the outcome that the ROI proxy divides by budget, so it inflates ROI. Blockbusters only. |
 | `stratified_year` | The most-voted films of each release year, the same number of pages per year. | Votes measure exposure, not revenue, and no year is over-represented. Films without a reported budget or revenue are still dropped by the staging filters, and they are not missing at random, so financial metrics describe only films that report both. |
 
-Each run records how many films the staging filters removed, because that share is the size of the second bias. **No stratified snapshot from live TMDB data has been recorded yet.** The [monthly refresh workflow](.github/workflows/refresh-snapshots.yml) loads both profiles, runs the dbt tests and commits a dated summary to `snapshots/`. It needs a repository secret named `TMDB_API_KEY` and has not run yet, so the comparison between the two profiles is not available.
+Each run records how many films the staging filters removed, because that share is the size of the second bias. The [monthly refresh workflow](.github/workflows/refresh-snapshots.yml) loads both profiles, runs the dbt tests and commits a dated summary to `snapshots/`.
+
+### First comparison, 2026-10-31
+
+| | `revenue` | `stratified_year` |
+|---|---:|---:|
+| Films ingested | 100 | 440 |
+| Films after staging filters | 100 | 429 (2.5% dropped) |
+| Release years | 1993 to 2026 | 2005 to 2026 |
+| Smallest revenue in the sample | $857.6M | $7 |
+| Median ROI | 5.79 | 3.25 |
+| Mean ROI | 6.85 | 6.46 |
+| dbt tests | 13 of 13 | 13 of 13 |
+
+- **The median ROI falls by 44%** when films are no longer picked by revenue. The mean barely moves, because a few very high ratios in the stratified sample pull it up. The mean ROI of Horror is 33.6 and its median is 4.41.
+- **Genre rankings change.** Under the revenue profile Animation, Comedy and Family lead on median ROI. Under the stratified profile the leaders by median are Romance, Horror and Drama, and Animation falls to 3.61.
+- **The stratified sample is less biased, not unbiased.** It still holds only films with at least 50 votes, and its smallest film has 2,280 votes. Films without a reported budget or revenue are dropped, and a revenue of $7 shows that some reported values are placeholders. The staging filter keeps any revenue above zero.
+- **The two samples also cover different years.** Part of the difference can come from period and not from the sampling rule.
+- This is one dated run with no intervals. Treat the direction of the shift as the finding and the exact figures as provisional.
 
 ## Data quality and validation
 
