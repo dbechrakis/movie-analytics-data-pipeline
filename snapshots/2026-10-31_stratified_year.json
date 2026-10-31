@@ -1,0 +1,128 @@
+{
+  "generated_at": "2026-10-31T08:56:24+00:00",
+  "sampling": "stratified_year",
+  "movies_ingested": 440,
+  "movies_after_staging_filters": 429,
+  "share_dropped_by_staging_filters": 0.025,
+  "release_years": [
+    2005,
+    2026
+  ],
+  "min_vote_count": 2280,
+  "min_revenue": 7.0,
+  "avg_rating": 7.27,
+  "roi_mean": 6.4646,
+  "roi_median": 3.2521,
+  "total_revenue": 229620492298.0,
+  "genres_with_at_least_10_movies": [
+    {
+      "genre": "Horror",
+      "movies": 31,
+      "roi_mean": 33.6,
+      "roi_median": 4.41,
+      "avg_rating": 7.23
+    },
+    {
+      "genre": "Thriller",
+      "movies": 98,
+      "roi_mean": 12.8,
+      "roi_median": 3.52,
+      "avg_rating": 7.23
+    },
+    {
+      "genre": "Romance",
+      "movies": 38,
+      "roi_mean": 8.26,
+      "roi_median": 5.87,
+      "avg_rating": 7.18
+    },
+    {
+      "genre": "History",
+      "movies": 13,
+      "roi_mean": 7.22,
+      "roi_median": 3.46,
+      "avg_rating": 7.88
+    },
+    {
+      "genre": "Mystery",
+      "movies": 29,
+      "roi_mean": 6.9,
+      "roi_median": 3.33,
+      "avg_rating": 7.34
+    },
+    {
+      "genre": "Drama",
+      "movies": 108,
+      "roi_mean": 6.86,
+      "roi_median": 4.2,
+      "avg_rating": 7.57
+    },
+    {
+      "genre": "Animation",
+      "movies": 57,
+      "roi_mean": 5.58,
+      "roi_median": 3.61,
+      "avg_rating": 7.56
+    },
+    {
+      "genre": "Comedy",
+      "movies": 106,
+      "roi_mean": 5.22,
+      "roi_median": 3.83,
+      "avg_rating": 7.29
+    },
+    {
+      "genre": "War",
+      "movies": 13,
+      "roi_mean": 4.85,
+      "roi_median": 3.46,
+      "avg_rating": 7.66
+    },
+    {
+      "genre": "Family",
+      "movies": 63,
+      "roi_mean": 4.23,
+      "roi_median": 3.61,
+      "avg_rating": 7.37
+    },
+    {
+      "genre": "Fantasy",
+      "movies": 90,
+      "roi_mean": 3.78,
+      "roi_median": 2.82,
+      "avg_rating": 7.11
+    },
+    {
+      "genre": "Adventure",
+      "movies": 205,
+      "roi_mean": 3.54,
+      "roi_median": 2.99,
+      "avg_rating": 7.16
+    },
+    {
+      "genre": "Science Fiction",
+      "movies": 149,
+      "roi_mean": 3.54,
+      "roi_median": 2.53,
+      "avg_rating": 7.17
+    },
+    {
+      "genre": "Crime",
+      "movies": 47,
+      "roi_mean": 3.46,
+      "roi_median": 3.29,
+      "avg_rating": 7.39
+    },
+    {
+      "genre": "Action",
+      "movies": 207,
+      "roi_mean": 3.18,
+      "roi_median": 2.69,
+      "avg_rating": 7.13
+    }
+  ],
+  "dbt_tests": {
+    "passed": 13,
+    "total": 13
+  }
+}
