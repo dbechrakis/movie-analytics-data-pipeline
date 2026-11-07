@@ -2,6 +2,8 @@
 
 [![Code, tests and evidence](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml/badge.svg)](https://github.com/dbechrakis/movie-analytics-data-pipeline/actions/workflows/evidence.yml)
 
+**Result:** Picking films by revenue inflates ROI. Sampling the most-voted films of each year cut the median ROI from 5.79 to 3.25 on one dated live run, with 13 of 13 dbt tests passing.
+
 An end-to-end analytics product that turns TMDB API data into tested analytical models and an interactive decision dashboard.
 
 **Stack:** Python · dlt · PostgreSQL · dbt · Streamlit · Plotly · Docker
@@ -265,4 +267,4 @@ Portfolio case study developed from MSc Data Science coursework at **The America
 
 **Dimitris Bechrakis**
 
-Business Analyst | Commercial Analytics · Data Products · Applied Data Science
+Business Analyst · Commercial Analytics & Experimentation · Applied Data Science
