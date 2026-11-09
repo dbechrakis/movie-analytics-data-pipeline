@@ -92,7 +92,7 @@ See the [architecture notes](docs/architecture.md) for component boundaries and 
 The default ingestion requests five TMDB discovery pages sorted by reported revenue and requires at least 50 votes before retrieving movie details. The dbt staging layer then keeps records with:
 
 - a valid title and release date;
-- positive reported budget and revenue;
+- reported budget and revenue of at least $10,000 each (smaller values are TMDB placeholders);
 - a rating between 0 and 10.
 
 The key derived metric is:
@@ -243,14 +243,14 @@ make pipeline-check   # needs PostgreSQL, uses a synthetic TMDB and no key
 ## Design decisions and limitations
 
 - **Selected sample:** revenue-ranked TMDB discovery pages are not representative of the film industry. The `stratified_year` profile removes the revenue selection but not the missing-financials selection.
-- **Reported financials:** missing or inaccurate TMDB budget/revenue values can bias results. The staging filter keeps any budget and revenue above zero, so placeholder values pass. The stratified sample contains a film with a reported revenue of $7, and the dbt ROI test checks only that ROI is not null. A $1 budget or a $7 revenue turns into an extreme ROI, so **mean ROI by genre is unreliable** in that sample (Horror's mean is 33.6 against a median of 4.41). Read the medians.
+- **Reported financials:** missing or inaccurate TMDB budget/revenue values can bias results. Placeholder values are a known TMDB problem: the stratified sample once held a film reporting $7 of revenue, which turns into an absurd ROI. Since 2026-11-09 staging drops any budget or revenue under $10,000 (`min_reported_usd` in `dbt/dbt_project.yml`), the dbt quality test enforces it, and the synthetic CI data plants placeholders to prove they are dropped. The committed snapshots predate the floor, so their genre means (Horror's mean of 33.6 against a median of 4.41) still include such rows. Read their medians.
 - **Descriptive analysis:** associations in the dashboard are not causal effects.
 - **Replace loading:** each run replaces the raw tables. The dated summaries in `snapshots/` are the only history, and they hold aggregates, not films.
 - **Local credentials:** defaults support local Docker use only. Production secrets require a proper secret manager.
 
 ## Future improvements
 
-- Add a plausibility floor for reported budget and revenue, then rerun both profiles (see the placeholder limitation below).
+- Rerun both profiles with a TMDB key so the snapshots reflect the $10,000 floor (the committed ones predate it).
 - Add incremental ingestion with freshness and volume monitoring. This needs an explicit rule for deleted and updated films.
 - Add a small deployment dataset or hosted database for a persistent public demo.
 - Extend the mart with profitability bands and minimum-sample guardrails for rankings.

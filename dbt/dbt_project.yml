@@ -12,6 +12,10 @@ clean-targets:
   - target
   - dbt_packages
 
+vars:
+  # Reported budgets and revenues below this are TMDB placeholders (a $1 budget, a $7 revenue), not financials.
+  min_reported_usd: 10000
+
 models:
   movie_analytics:
     +materialized: view

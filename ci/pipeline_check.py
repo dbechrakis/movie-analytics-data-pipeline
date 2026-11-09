@@ -58,6 +58,9 @@ def check(profile, settings):
         assert kept < raw, f"films without budget or revenue should be dropped, kept {kept} of {raw}"
     else:
         assert kept == raw, f"revenue ranking should keep films that all report revenue, kept {kept} of {raw}"
+    assert scalar(engine, "select count(*) from analytics.stg_movies where budget < 10000 or revenue < 10000") == 0
+    if profile == "stratified_year":
+        assert scalar(engine, "select count(*) from raw.movies where revenue between 1 and 9999") > 0, "plant placeholders to test the floor"
     assert scalar(engine, "select count(distinct sampling) from raw.movies") == 1
     assert scalar(engine, "select min(sampling) from raw.movies") == profile
     assert scalar(engine, "select count(*) from analytics.genre_decade_summary") > 0

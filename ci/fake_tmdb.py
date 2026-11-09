@@ -13,6 +13,7 @@ YEARS = range(1995, 2026)
 FILMS_PER_YEAR = 60
 PAGE_SIZE = 20
 MISSING_FINANCIALS_SHARE = 0.15
+PLACEHOLDER_SHARE = 0.05          # films that report a placeholder revenue, as TMDB sometimes does ($7 in one real run)
 
 
 def _film(year: int, index: int) -> dict:
@@ -21,6 +22,8 @@ def _film(year: int, index: int) -> dict:
     votes = int(math.exp(rng.gauss(6.5, 1.5)))
     budget = 0 if rng.random() < MISSING_FINANCIALS_SHARE else int(math.exp(rng.gauss(17.0, 1.2)))
     revenue = 0 if budget == 0 else int(budget * math.exp(rng.gauss(0.9, 1.1)))
+    if revenue and random.Random(-(year * 1000 + index)).random() < PLACEHOLDER_SHARE:
+        revenue = 7
     genre_ids = rng.sample([g["id"] for g in GENRES], rng.randint(1, 3))
     return {
         "id": movie_id, "title": f"Synthetic Film {movie_id}",
