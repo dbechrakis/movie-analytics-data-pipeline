@@ -243,14 +243,14 @@ make pipeline-check   # needs PostgreSQL, uses a synthetic TMDB and no key
 ## Design decisions and limitations
 
 - **Selected sample:** revenue-ranked TMDB discovery pages are not representative of the film industry. The `stratified_year` profile removes the revenue selection but not the missing-financials selection.
-- **Reported financials:** missing or inaccurate TMDB budget/revenue values can bias results.
+- **Reported financials:** missing or inaccurate TMDB budget/revenue values can bias results. The staging filter keeps any budget and revenue above zero, so placeholder values pass. The stratified sample contains a film with a reported revenue of $7, and the dbt ROI test checks only that ROI is not null. A $1 budget or a $7 revenue turns into an extreme ROI, so **mean ROI by genre is unreliable** in that sample (Horror's mean is 33.6 against a median of 4.41). Read the medians.
 - **Descriptive analysis:** associations in the dashboard are not causal effects.
 - **Replace loading:** each run replaces the raw tables. The dated summaries in `snapshots/` are the only history, and they hold aggregates, not films.
 - **Local credentials:** defaults support local Docker use only. Production secrets require a proper secret manager.
 
 ## Future improvements
 
-- Run the refresh workflow once with a TMDB key, and report the gap between the two profiles.
+- Add a plausibility floor for reported budget and revenue, then rerun both profiles (see the placeholder limitation below).
 - Add incremental ingestion with freshness and volume monitoring. This needs an explicit rule for deleted and updated films.
 - Add a small deployment dataset or hosted database for a persistent public demo.
 - Extend the mart with profitability bands and minimum-sample guardrails for rankings.
