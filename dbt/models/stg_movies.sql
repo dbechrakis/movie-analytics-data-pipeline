@@ -40,6 +40,6 @@ select
 from cleaned
 where title is not null
   and release_date is not null
-  and budget > 0
-  and revenue > 0
+  and budget >= {{ var('min_reported_usd') }}
+  and revenue >= {{ var('min_reported_usd') }}
   and vote_average between 0 and 10
