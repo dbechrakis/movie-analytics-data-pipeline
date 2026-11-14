@@ -1,11 +1,11 @@
 -e .
-dlt[postgres]>=1.10.0
-dbt-core>=1.9.0
-dbt-postgres>=1.9.0
-python-dotenv>=1.0.1
-requests>=2.32.0
-pandas>=2.2.0
-psycopg2-binary>=2.9.9
-sqlalchemy>=2.0.0
-streamlit>=1.50.0
-plotly>=5.24.0
+dlt[postgres]==1.32.0
+dbt-core==1.12.7
+dbt-postgres==1.11.0
+python-dotenv==1.2.4
+requests==2.34.2
+pandas==3.1.1
+psycopg2-binary==2.9.13
+sqlalchemy==2.1.8
+streamlit==1.67.0
+plotly==7.1.0

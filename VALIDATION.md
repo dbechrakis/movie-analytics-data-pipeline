@@ -1,5 +1,7 @@
 # Validation record
 
+**Scope of the latest review.** Rerun in the review of 2026-11-14: the unit tests with newly pinned dependencies, and the snapshot series table. Recorded history and not rerun in that review: the TMDB ingestion, the PostgreSQL load and the dbt run and tests, which need a database and a TMDB key. Command: `make check`, then `PYTHONPATH=src python -m movie_analytics.snapshot_series`.
+
 Latest review: 2026-10-30 (UTC). Previous reviews: 2026-10-05, 2026-09-22.
 
 ## Live end-to-end run, 2026-10-05
@@ -49,3 +51,8 @@ Other changes: the staging model passes `sampling` through with an `accepted_val
 
 - No persistent hosted dashboard deployment was validated.
 - No live scheduled ingestion was run. The refresh workflow needs a TMDB key stored as a repository secret and has not run. Each run replaces the previous raw snapshot.
+
+## Requirements pinned to the versions that resolved on 2026-11-14
+
+- `requirements.txt` held lower bounds only, so a rerun in a later year might not build. It now pins the versions that a clean Python 3.12 environment resolved on 2026-11-14 from those bounds.
+- With those versions installed, the 26 unit tests pass. Not rerun: the PostgreSQL load, `dbt run` and `dbt test`, and the dashboard, which need a database and a TMDB key. The pins are therefore verified for the Python tests and not for the full pipeline. The monthly refresh workflow is the first full check.
