@@ -1,5 +1,7 @@
 # Validation record
 
+**Scope of the latest review.** Rerun in the review of 2026-11-14: the unit tests with newly pinned dependencies, and the snapshot series table. Recorded history and not rerun in that review: the TMDB ingestion, the PostgreSQL load and the dbt run and tests, which need a database and a TMDB key. Command: `make check`, then `PYTHONPATH=src python -m movie_analytics.snapshot_series`.
+
 Latest review: 2026-10-30 (UTC). Previous reviews: 2026-10-05, 2026-09-22.
 
 ## Live end-to-end run, 2026-10-05
