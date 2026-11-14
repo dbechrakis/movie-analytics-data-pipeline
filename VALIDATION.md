@@ -49,3 +49,8 @@ Other changes: the staging model passes `sampling` through with an `accepted_val
 
 - No persistent hosted dashboard deployment was validated.
 - No live scheduled ingestion was run. The refresh workflow needs a TMDB key stored as a repository secret and has not run. Each run replaces the previous raw snapshot.
+
+## Requirements pinned to the versions that resolved on 2026-11-14
+
+- `requirements.txt` held lower bounds only, so a rerun in a later year might not build. It now pins the versions that a clean Python 3.12 environment resolved on 2026-11-14 from those bounds.
+- With those versions installed, the 26 unit tests pass. Not rerun: the PostgreSQL load, `dbt run` and `dbt test`, and the dashboard, which need a database and a TMDB key. The pins are therefore verified for the Python tests and not for the full pipeline. The monthly refresh workflow is the first full check.
