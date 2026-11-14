@@ -132,6 +132,23 @@ Each run records how many films the staging filters removed, because that share 
 - **The two samples also cover different years.** Part of the difference can come from period and not from the sampling rule.
 - This is one dated run with no intervals. Treat the direction of the shift as the finding and the exact figures as provisional.
 
+### Snapshot series
+
+The monthly refresh has now written three dated pairs. The table is generated from `snapshots/` by `python -m movie_analytics.snapshot_series --write-readme` and a test checks that it matches.
+
+<!-- snapshot-series:start -->
+| Snapshot date | Profile | Films ingested | After staging filters | Median ROI | Mean ROI | dbt tests passed |
+|---|---|---:|---:|---:|---:|---:|
+| 2026-10-31 | `revenue` | 100 | 100 | 5.79 | 6.85 | 13 of 13 |
+| 2026-11-01 | `revenue` | 100 | 100 | 5.79 | 6.85 | 13 of 13 |
+| 2026-11-09 | `revenue` | 100 | 100 | 5.79 | 6.85 | 13 of 13 |
+| 2026-10-31 | `stratified_year` | 440 | 429 | 3.25 | 6.46 | 13 of 13 |
+| 2026-11-01 | `stratified_year` | 440 | 429 | 3.25 | 6.46 | 13 of 13 |
+| 2026-11-09 | `stratified_year` | 440 | 428 | 3.25 | 6.47 | 13 of 13 |
+<!-- snapshot-series:end -->
+
+The two profiles stay apart in every run: the median ROI of the revenue profile is the same to two decimals, and the median of the stratified profile moves by 0.003 between the first and the last snapshot. That says the TMDB sample changes slowly, not that the finding has been replicated. The three snapshots are not independent draws of the film industry.
+
 ## Data quality and validation
 
 Quality controls exist at three levels:
